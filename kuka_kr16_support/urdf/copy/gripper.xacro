@@ -1,0 +1,142 @@
+ <?xml version="1.0"?>
+<robot>
+  <xacro>
+    <!-- Define constants -->
+    <xacro:property name="gripper_mass" value="0.3"/>
+    <xacro:property name="finger_mass" value="0.1"/>
+    <xacro:property name="gripper_type" value="two_finger"/>
+    <xacro:property name="vacuum_gripper_radius" value="0.1"/>
+    <xacro:if value="${gripper_type == 'vacuum'}">
+    <link name="${prefix}gripper_link">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="${gripper_mass}"/>
+        <inertia ixx="0.005" ixy="0" ixz="0" iyy="0.00" iyz="0" izz="0.00"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <sphere radius="${vacuum_gripper_radius}"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <sphere radius="${vacuum_gripper_radius}"/>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="${prefix}gripper_joint" type="fixed">
+      <parent link="${prefix}link_6"/>
+      <child link="${prefix}gripper_link"/>
+      <origin xyz="0.0375 0 0" rpy="0 0 0"/>
+    </joint>
+    </xacro:if>
+
+    <!--Two-finger gripper-->
+    <xacro:if value="${gripper_type == 'two_finger'}">
+    <link name="${prefix}gripper_link">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="${gripper_mass}"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0002" iyz="0" izz="0.0001"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://kuka_kr16_support/meshes/kr16_2/gripper/gripper_base.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://kuka_kr16_support/meshes/kr16_2/gripper/gripper_base.dae"/>
+        </geometry>
+      </collision>
+    </link>
+    <link name="${prefix}right_gripper_finger_link">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="${finger_mass}"/>
+        <inertia ixx="0.002" ixy="0" ixz="0" iyy="0.0002" iyz="0" izz="0.0002"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://kuka_kr16_support/meshes/kr16_2/gripper/finger_right.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://kuka_kr16_support/meshes/kr16_2/gripper/finger_right_collision.dae"/>
+        </geometry>
+      </collision>
+    </link>
+    <link name="${prefix}left_gripper_finger_link">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="${finger_mass}"/>
+        <inertia ixx="0.002" ixy="0" ixz="0" iyy="0.0002" iyz="0" izz="0.0002"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://kuka_kr16_support/meshes/kr16_2/gripper/finger_left.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://kuka_kr16_support/meshes/kr16_2/gripper/finger_left_collision.dae"/>
+        </geometry>
+      </collision>
+    </link>
+    
+    <joint name="${prefix}right_gripper_finger_joint" type="prismatic">
+      <origin rpy="0 0 0" xyz="0.15 -0.0725 0" />
+      <parent link="${prefix}gripper_link" />
+      <child link="${prefix}right_gripper_finger_link" />
+      <axis xyz="0 1 0" />
+      <limit effort="100" lower="-0.01" upper="0.06" velocity="0.05" />
+      <dynamics damping="0.7" />
+    </joint>
+    <joint name="${prefix}left_gripper_finger_joint" type="prismatic">
+      <origin rpy="0 0 0" xyz="0.15 0.0725 0" />
+      <parent link="${prefix}gripper_link" />
+      <child link="${prefix}left_gripper_finger_link" />
+      <axis xyz="0 -1 0" />
+      <limit effort="100" lower="-0.01" upper="0.06" velocity="0.05" />
+      <dynamics damping="0.7" />
+    </joint>
+    <joint name="${prefix}gripper_joint" type="fixed">
+      <parent link="${prefix}link_6"/>
+      <child link="${prefix}gripper_link"/>
+      <origin xyz="0.11 0 0" rpy="0 0 0"/><!--0.087-->
+      <axis xyz="0 1 0" />
+    </joint>
+
+    <transmission name="tran7">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="left_gripper_finger_joint">
+        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="motor7">
+        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="tran8">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="right_gripper_finger_joint">
+        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="motor8">
+        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+    </xacro:if> 
+  </xacro> 
+</robot>
